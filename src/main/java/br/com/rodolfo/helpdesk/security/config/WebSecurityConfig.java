@@ -15,9 +15,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import br.com.rodolfo.helpdesk.security.filters.JwtAuthenticationTokenFilter;
 import br.com.rodolfo.helpdesk.security.JwtAuthenticationEntryPoint;
+import br.com.rodolfo.helpdesk.security.filters.JwtAuthenticationTokenFilter;
 import br.com.rodolfo.helpdesk.security.services.JwtUserDetailsServiceImpl;
+
 
 /**
  * WebSecurityConfig

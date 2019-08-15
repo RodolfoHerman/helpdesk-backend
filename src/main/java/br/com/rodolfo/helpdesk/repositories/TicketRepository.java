@@ -1,4 +1,4 @@
-package br.com.rodolfo.helpdesk.repository;
+package br.com.rodolfo.helpdesk.repositories;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

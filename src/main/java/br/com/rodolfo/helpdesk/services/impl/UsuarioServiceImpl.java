@@ -6,7 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import br.com.rodolfo.helpdesk.models.Usuario;
-import br.com.rodolfo.helpdesk.repository.UsuarioRepository;
+import br.com.rodolfo.helpdesk.repositories.UsuarioRepository;
 import br.com.rodolfo.helpdesk.services.UsuarioService;
 
 /**
