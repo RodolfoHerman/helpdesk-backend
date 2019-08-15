@@ -3,7 +3,6 @@ package br.com.rodolfo.helpdesk.security.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -16,37 +15,40 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import br.com.rodolfo.helpdesk.security.jwt.JwtAuthenticationEntryPoint;
-import br.com.rodolfo.helpdesk.security.jwt.JwtAuthenticationTokenFilter;
+import br.com.rodolfo.helpdesk.security.filters.JwtAuthenticationTokenFilter;
+import br.com.rodolfo.helpdesk.security.JwtAuthenticationEntryPoint;
+import br.com.rodolfo.helpdesk.security.services.JwtUserDetailsServiceImpl;
 
 /**
- * responsável por habilitar o security na aplicação
+ * WebSecurityConfig
+ * https://www.boraji.com/spring-security-5-custom-userdetailsservice-example
  */
 @Configuration
-// Habilita o security
 @EnableWebSecurity
-// Realiza a validação
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private JwtAuthenticationEntryPoint manipularNaoAutorizado;
-
-    @Autowired
-    private UserDetailsService userDetailsService;
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Autowired
     public void configureAuthentication(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
+        
+        authenticationManagerBuilder.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
+    }
 
-        authenticationManagerBuilder.userDetailsService(this.userDetailsService).passwordEncoder(passwordEncoder());
+    @Bean
+    public UserDetailsService userDetailsService() {
+
+        return new JwtUserDetailsServiceImpl();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-
+        
         return new BCryptPasswordEncoder();
     }
-
+    
     @Bean
     public JwtAuthenticationTokenFilter authenticationTokenFilterBean() throws Exception {
 
@@ -54,32 +56,25 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
 
         return super.authenticationManager();
     }
 
     @Override
-    protected void configure(HttpSecurity httpSecurity) throws Exception {
-
+    public void configure(HttpSecurity httpSecurity) throws Exception {
+        
         httpSecurity.csrf().disable()
-            .exceptionHandling().authenticationEntryPoint(manipularNaoAutorizado).and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+            .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
+            .and()
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
             .authorizeRequests()
-            .antMatchers(
-                HttpMethod.GET,
-                "/",
-                "/*.html",
-                "favicon.ico",
-                "/**/*.html",
-                "/**/*.css",
-                "/**/*.js"
-            ).permitAll()
-            .antMatchers("/api/auth/**").permitAll()
+            .antMatchers("/auth/**").permitAll()
             .anyRequest().authenticated();
 
         httpSecurity.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
         httpSecurity.headers().cacheControl();
     }
+    
 }

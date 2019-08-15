@@ -1,4 +1,4 @@
-package br.com.rodolfo.helpdesk.security.jwt;
+package br.com.rodolfo.helpdesk.security.filters;
 
 import java.io.IOException;
 
@@ -15,10 +15,16 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import br.com.rodolfo.helpdesk.security.utils.JwtTokenUtil;
+
 /**
- * Filtro para verificar o acesso de cada requisição
+ * JwtAuthenticationTokenFilter
+ * Responsável por intercptar e verificar cada requisição solicitada
  */
 public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
+
+    private static final String AUTH_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -30,23 +36,28 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws ServletException, IOException {
         
-        String authToken = request.getHeader("Authorization");
-        System.out.println(request.toString());
-        String username = jwtTokenUtil.extrairUsernameDoToken(authToken);
+        String token = request.getHeader(AUTH_HEADER);
+
+        if(token != null && token.startsWith(BEARER_PREFIX)) {
+
+            token = token.substring(7);
+        }
+
+        String username = jwtTokenUtil.getUserNameFromToken(token);
 
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            if(jwtTokenUtil.isTokenValido(authToken, userDetails)) {
+            if(jwtTokenUtil.isTokenValido(token)) {
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities()
+                    userDetails,
+                    null, 
+                    userDetails.getAuthorities()
                 );
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                logger.info("Usuário autenticado como " + username + ", configurando contexto de segurança");
-                
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
