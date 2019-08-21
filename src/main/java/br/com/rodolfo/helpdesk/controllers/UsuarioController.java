@@ -65,7 +65,7 @@ public class UsuarioController {
 
     @PutMapping
     @PreAuthorize("hasAnyRole('ADMINISTRADOR')")
-    private ResponseEntity<Response<Usuario>> atualizar(@RequestBody Usuario usuario, BindingResult result) {
+    public ResponseEntity<Response<Usuario>> atualizar(@RequestBody Usuario usuario, BindingResult result) {
 
         Response<Usuario> response = new Response<>();
 
